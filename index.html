@@ -3,30 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام السكرتارية الذكية</title>
+    <title>إضافة موعد جديد</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f2f5;
-        }
-        .loader {
-            text-align: center;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8f9fc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .form-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
+        h2 { color: #4e73df; text-align: center; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #333; }
+        input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background-color: #4e73df; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+        button:hover { background-color: #2e59d9; }
+        .back-link { display: block; text-align: center; margin-top: 15px; color: #858796; text-decoration: none; font-size: 14px; }
     </style>
 </head>
 <body>
-    <div class="loader">
-        <h2>جاري تحويلك إلى صفحة تسجيل الدخول...</h2>
-    </div>
 
-    <script>
-        // هذا الكود يرسل المستخدم تلقائياً إلى صفحة login.html
-        window.location.href = "login.html";
-    </script>
+<div class="form-container">
+    <h2>➕ إضافة موعد جديد</h2>
+    
+    <label>اسم العميل:</label>
+    <input type="text" id="clientName" placeholder="أدخل اسم العميل" required>
+
+    <label>رقم الهاتف:</label>
+    <input type="tel" id="clientPhone" placeholder="مثال: 201234567890" required>
+
+    <label>تاريخ ووقت الموعد:</label>
+    <input type="datetime-local" id="appTime" required>
+
+    <label>ملاحظات:</label>
+    <textarea id="notes" rows="3" placeholder="أي ملاحظات إضافية..."></textarea>
+
+    <button onclick="addAppointment()">حفظ الموعد وعرض الجدول</button>
+    <a href="dashboard.html" class="back-link">الذهاب للجدول مباشرة</a>
+    <div id="status" style="text-align: center; margin-top: 10px;"></div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBwNGviMj8Y9RtarKo-INQ9UdofvIyW4XQ",
+    authDomain: "smart-secretary-system-13f33.firebaseapp.com",
+    databaseURL: "https://smart-secretary-system-13f33-default-rtdb.firebaseio.com",
+    projectId: "smart-secretary-system-13f33",
+    storageBucket: "smart-secretary-system-13f33.firebasestorage.app",
+    messagingSenderId: "749053278104",
+    appId: "1:749053278104:web:61c3e4e2fd2b220e409ded"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window.addAppointment = function() {
+    const name = document.getElementById('clientName').value;
+    const phone = document.getElementById('clientPhone').value;
+    const time = document.getElementById('appTime').value;
+    const notes = document.getElementById('notes').value;
+    const status = document.getElementById('status');
+
+    if(name && phone && time) {
+      status.innerText = "جاري الحفظ...";
+      
+      // حفظ الموعد في جدول appointments
+      push(ref(db, 'appointments'), {
+        client_name: name,
+        phone: phone,
+        appointment_time: time,
+        notes: notes
+      }).then(() => {
+        status.style.color = "green";
+        status.innerText = "تم حفظ الموعد بنجاح!";
+        
+        // الانتقال لصفحة الجدول بعد ثانية واحدة
+        setTimeout(() => {
+            window.location.href = "dashboard.html";
+        }, 1000);
+
+      }).catch((e) => {
+        status.style.color = "red";
+        status.innerText = "خطأ: " + e.message;
+      });
+    } else {
+      alert("يرجى ملء البيانات الأساسية (الاسم، الهاتف، والوقت)");
+    }
+  }
+</script>
+
 </body>
 </html>
