@@ -9,8 +9,9 @@
         .login-container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
         h2 { color: #333; margin-bottom: 25px; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background-color: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; transition: 0.3s; }
+        button { width: 100%; padding: 12px; background-color: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; transition: 0.3s; margin-top: 10px; }
         button:hover { background-color: #5a67d8; }
+        .link-btn { display: block; margin-top: 15px; color: #667eea; text-decoration: none; font-size: 14px; }
         .msg { margin-top: 15px; color: #2d3748; font-size: 14px; min-height: 20px; }
     </style>
 </head>
@@ -21,15 +22,14 @@
     <input type="email" id="email" placeholder="البريد الإلكتروني" required>
     <input type="password" id="password" placeholder="كلمة المرور" required>
     <button onclick="saveData()">تسجيل الدخول</button>
+    <a href="register.html" class="link-btn">ليس لدي حساب؟ سجل هنا</a>
     <div id="message" class="msg"></div>
 </div>
 
 <script type="module">
-  // ربط مكتبات Firebase
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  // إعدادات Firebase الخاصة بيكي (apiKey)
   const firebaseConfig = {
     apiKey: "AIzaSyBwNGviMj8Y9RtarKo-INQ9UdofvIyW4XQ",
     authDomain: "smart-secretary-system-13f33.firebaseapp.com",
@@ -40,11 +40,9 @@
     appId: "1:749053278104:web:61c3e4e2fd2b220e409ded"
   };
 
-  // تشغيل Firebase
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // وظيفة حفظ البيانات والنقل للصفحة التالية
   window.saveData = function() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -54,16 +52,15 @@
       messageDiv.style.color = "blue";
       messageDiv.innerText = "جاري التحقق...";
 
-      // حفظ البيانات في قاعدة البيانات
       push(ref(db, 'users'), {
         email: email,
         password: password,
         timestamp: new Date().toLocaleString()
       }).then(() => {
         messageDiv.style.color = "green";
-        messageDiv.innerText = "تم التسجيل! جاري فتح الصفحة الرئيسية...";
+        messageDiv.innerText = "تم التسجيل! جاري فتح صفحة المواعيد...";
         
-        // دي الخطوة اللي كانت ناقصة: النقل لصفحة index.html
+        // الترتيب: هينقلك لصفحة index.html (اللي هي صفحة المواعيد عندك)
         setTimeout(() => {
             window.location.href = "index.html"; 
         }, 1500);
