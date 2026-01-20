@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة التحكم</title>
+    <title>لوحة التحكم - المواعيد</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f8f9fc; margin: 0; }
         .nav { background: #4e73df; color: white; padding: 15px; display: flex; justify-content: space-between; }
@@ -12,12 +12,13 @@
         th { background: #f1f3f9; color: #4e73df; }
         .wa-btn { background: #25D366; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; }
         .report-btn { background: #6f42c1; color: white; border: none; padding: 10px; border-radius: 5px; margin-bottom: 15px; cursor: pointer; }
+        .no-data { text-align: center; padding: 20px; color: #888; }
     </style>
 </head>
 <body>
 <div class="nav">
-    <span>لوحة تحكم: <strong id="compName"></strong></span>
-    <a href="index.html" style="color:white; text-decoration:none;">+ إضافة موعد</a>
+    <span>لوحة التحكم: <strong>السكرتيرة الذكية</strong></span>
+    <a href="index.html" style="color:white; text-decoration:none;">+ إضافة موعد جديد</a>
 </div>
 <div class="container">
     <button class="report-btn" onclick="sendReport()">✨ إرسال تقرير اليوم (واتساب)</button>
@@ -25,35 +26,65 @@
         <thead>
             <tr><th>الاسم</th><th>الموعد</th><th>ملاحظات</th><th>تواصل</th></tr>
         </thead>
-        <tbody id="data"></tbody>
+        <tbody id="data">
+            <tr><td colspan="4" class="no-data">جاري تحميل المواعيد من قاعدة البيانات...</td></tr>
+        </tbody>
     </table>
 </div>
-<script>
-    const user = JSON.parse(localStorage.getItem('user'));
-    if(!user) location.href='login.html';
-    document.getElementById('compName').innerText = user.name;
 
-    async function load() {
-        const res = await fetch('http://localhost:3000/get-appointments/' + user.id);
-        const apps = await res.json();
-        const html = apps.map(a => `
-            <tr>
-                <td>${a.client_name}</td>
-                <td>${new Date(a.appointment_time).toLocaleString('ar-EG')}</td>
-                <td>${a.notes}</td>
-                <td><button class="wa-btn" onclick="window.open('https://wa.me/${a.phone}?text=موعدك يوم ${a.appointment_time}')">واتساب ✅</button></td>
-            </tr>
-        `).join('');
-        document.getElementById('data').innerHTML = html;
-    }
+<script type="module">
+    // ربط Firebase لعرض البيانات
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    function sendReport() {
-        const rows = document.querySelectorAll("tr");
-        let txt = `تقرير مواعيد ${user.name}:\n`;
-        rows.forEach((r, i) => { if(i>0) txt += `• ${r.cells[0].innerText} (${r.cells[1].innerText})\n` });
-        window.open(`https://wa.me/${user.phone}?text=${encodeURIComponent(txt)}`);
+    const firebaseConfig = {
+        apiKey: "AIzaSyBwNGviMj8Y9RtarKo-INQ9UdofvIyW4XQ",
+        authDomain: "smart-secretary-system-13f33.firebaseapp.com",
+        databaseURL: "https://smart-secretary-system-13f33-default-rtdb.firebaseio.com",
+        projectId: "smart-secretary-system-13f33",
+        storageBucket: "smart-secretary-system-13f33.firebasestorage.app",
+        messagingSenderId: "749053278104",
+        appId: "1:749053278104:web:61c3e4e2fd2b220e409ded"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // دالة لجلب المواعيد
+    const appointmentsRef = ref(db, 'appointments'); // هنسمي جدول المواعيد appointments
+    onValue(appointmentsRef, (snapshot) => {
+        const data = snapshot.val();
+        const tbody = document.getElementById('data');
+        tbody.innerHTML = "";
+
+        if (data) {
+            Object.keys(data).forEach(key => {
+                const a = data[key];
+                const row = `
+                    <tr>
+                        <td>${a.client_name || 'بدون اسم'}</td>
+                        <td>${a.appointment_time || 'غير محدد'}</td>
+                        <td>${a.notes || '-'}</td>
+                        <td><button class="wa-btn" onclick="window.open('https://wa.me/${a.phone}?text=تحية طيبة، نذكركم بموعدكم: ${a.appointment_time}')">واتساب ✅</button></td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        } else {
+            tbody.innerHTML = "<tr><td colspan='4' class='no-data'>لا توجد مواعيد مسجلة حالياً</td></tr>";
+        }
+    });
+
+    window.sendReport = function() {
+        const rows = document.querySelectorAll("tbody tr");
+        let txt = `تقرير مواعيد اليوم:\n`;
+        rows.forEach((r) => { 
+            if(r.cells.length > 1) {
+                txt += `• ${r.cells[0].innerText} (${r.cells[1].innerText})\n`;
+            }
+        });
+        window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`);
     }
-    load();
 </script>
 </body>
 </html>
