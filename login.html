@@ -5,28 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل الدخول - السكرتيرة الذكية</title>
     <style>
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
-        .login-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
-        button:hover { background-color: #0056b3; }
-        .msg { margin-top: 15px; color: green; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin: 0; }
+        .login-container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
+        h2 { color: #333; margin-bottom: 25px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background-color: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; transition: 0.3s; }
+        button:hover { background-color: #5a67d8; }
+        .msg { margin-top: 15px; color: #2d3748; font-size: 14px; min-height: 20px; }
     </style>
 </head>
 <body>
 
 <div class="login-container">
-    <h2>تسجيل الدخول</h2>
+    <h2>مرحباً بكِ</h2>
     <input type="email" id="email" placeholder="البريد الإلكتروني" required>
     <input type="password" id="password" placeholder="كلمة المرور" required>
-    <button onclick="saveData()">دخول</button>
+    <button onclick="saveData()">تسجيل الدخول</button>
     <div id="message" class="msg"></div>
 </div>
 
 <script type="module">
+  // ربط مكتبات Firebase
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+  // إعدادات Firebase الخاصة بيكي (apiKey)
   const firebaseConfig = {
     apiKey: "AIzaSyBwNGviMj8Y9RtarKo-INQ9UdofvIyW4XQ",
     authDomain: "smart-secretary-system-13f33.firebaseapp.com",
@@ -37,29 +40,40 @@
     appId: "1:749053278104:web:61c3e4e2fd2b220e409ded"
   };
 
+  // تشغيل Firebase
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
+  // وظيفة حفظ البيانات والنقل للصفحة التالية
   window.saveData = function() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const messageDiv = document.getElementById('message');
 
     if(email && password) {
+      messageDiv.style.color = "blue";
+      messageDiv.innerText = "جاري التحقق...";
+
+      // حفظ البيانات في قاعدة البيانات
       push(ref(db, 'users'), {
         email: email,
         password: password,
-        date: new Date().toISOString()
+        timestamp: new Date().toLocaleString()
       }).then(() => {
-        messageDiv.innerText = "تم تسجيل البيانات بنجاح في القاعدة!";
-        document.getElementById('email').value = "";
-        document.getElementById('password').value = "";
+        messageDiv.style.color = "green";
+        messageDiv.innerText = "تم التسجيل! جاري فتح الصفحة الرئيسية...";
+        
+        // دي الخطوة اللي كانت ناقصة: النقل لصفحة index.html
+        setTimeout(() => {
+            window.location.href = "index.html"; 
+        }, 1500);
+
       }).catch((error) => {
         messageDiv.style.color = "red";
-        messageDiv.innerText = "خطأ: " + error.message;
+        messageDiv.innerText = "حدث خطأ: " + error.message;
       });
     } else {
-      alert("يرجى ملء البيانات");
+      alert("من فضلك ادخلي البيانات كاملة");
     }
   }
 </script>
