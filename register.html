@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إنشاء حسابك بنجاح</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 350px; }
+        h2 { color: #1877f2; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #42b72a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        a { display: block; text-align: center; margin-top: 15px; color: #1877f2; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>إنشاء حساب جديد ✨</h2>
+    <input type="text" id="name" placeholder="اسم الشركة / العيادة">
+    <input type="email" id="email" placeholder="البريد الإلكتروني">
+    <input type="text" id="phone" placeholder="رقم واتساب الشركة">
+    <input type="password" id="pass" placeholder="كلمة المرور">
+    <button onclick="register()">إنشاء الحساب</button>
+    <a href="login.html">عندك حساب؟ دخول</a>
+</div>
+<script>
+    async function register() {
+        const res = await fetch('http://localhost:3000/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                company_name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                password: document.getElementById('pass').value
+            })
+        });
+        const data = await res.json();
+        if(data.success) { alert("تم التسجيل!"); window.location.href='login.html'; }
+        else { alert(data.message); }
+    }
+</script>
+</body>
+</html>

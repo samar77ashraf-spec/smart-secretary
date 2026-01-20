@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة التحكم</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f8f9fc; margin: 0; }
+        .nav { background: #4e73df; color: white; padding: 15px; display: flex; justify-content: space-between; }
+        .container { padding: 30px; }
+        table { width: 100%; background: white; border-radius: 10px; overflow: hidden; border-collapse: collapse; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: right; }
+        th { background: #f1f3f9; color: #4e73df; }
+        .wa-btn { background: #25D366; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; }
+        .report-btn { background: #6f42c1; color: white; border: none; padding: 10px; border-radius: 5px; margin-bottom: 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="nav">
+    <span>لوحة تحكم: <strong id="compName"></strong></span>
+    <a href="index.html" style="color:white; text-decoration:none;">+ إضافة موعد</a>
+</div>
+<div class="container">
+    <button class="report-btn" onclick="sendReport()">✨ إرسال تقرير اليوم (واتساب)</button>
+    <table>
+        <thead>
+            <tr><th>الاسم</th><th>الموعد</th><th>ملاحظات</th><th>تواصل</th></tr>
+        </thead>
+        <tbody id="data"></tbody>
+    </table>
+</div>
+<script>
+    const user = JSON.parse(localStorage.getItem('user'));
+    if(!user) location.href='login.html';
+    document.getElementById('compName').innerText = user.name;
+
+    async function load() {
+        const res = await fetch('http://localhost:3000/get-appointments/' + user.id);
+        const apps = await res.json();
+        const html = apps.map(a => `
+            <tr>
+                <td>${a.client_name}</td>
+                <td>${new Date(a.appointment_time).toLocaleString('ar-EG')}</td>
+                <td>${a.notes}</td>
+                <td><button class="wa-btn" onclick="window.open('https://wa.me/${a.phone}?text=موعدك يوم ${a.appointment_time}')">واتساب ✅</button></td>
+            </tr>
+        `).join('');
+        document.getElementById('data').innerHTML = html;
+    }
+
+    function sendReport() {
+        const rows = document.querySelectorAll("tr");
+        let txt = `تقرير مواعيد ${user.name}:\n`;
+        rows.forEach((r, i) => { if(i>0) txt += `• ${r.cells[0].innerText} (${r.cells[1].innerText})\n` });
+        window.open(`https://wa.me/${user.phone}?text=${encodeURIComponent(txt)}`);
+    }
+    load();
+</script>
+</body>
+</html>
