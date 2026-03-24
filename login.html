@@ -21,19 +21,18 @@
     <h2>مرحباً بكِ</h2>
     <input type="email" id="email" placeholder="البريد الإلكتروني" required>
     <input type="password" id="password" placeholder="كلمة المرور" required>
-    <button onclick="saveData()">تسجيل الدخول</button>
+    <button onclick="loginUser()">تسجيل الدخول</button>
     <a href="register.html" class="link-btn">ليس لدي حساب؟ سجل هنا</a>
     <div id="message" class="msg"></div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBwNGviMj8Y9RtarKo-INQ9UdofvIyW4XQ",
     authDomain: "smart-secretary-system-13f33.firebaseapp.com",
-    databaseURL: "https://smart-secretary-system-13f33-default-rtdb.firebaseio.com",
     projectId: "smart-secretary-system-13f33",
     storageBucket: "smart-secretary-system-13f33.firebasestorage.app",
     messagingSenderId: "749053278104",
@@ -41,33 +40,33 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+  const auth = getAuth(app);
 
-  window.saveData = function() {
+  window.loginUser = function() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const messageDiv = document.getElementById('message');
 
     if(email && password) {
       messageDiv.style.color = "blue";
-      messageDiv.innerText = "جاري التحقق...";
+      messageDiv.innerText = "جاري التحقق من الحساب...";
 
-      push(ref(db, 'users'), {
-        email: email,
-        password: password,
-        timestamp: new Date().toLocaleString()
-      }).then(() => {
+      signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
         messageDiv.style.color = "green";
-        messageDiv.innerText = "تم التسجيل! جاري فتح صفحة المواعيد...";
+        messageDiv.innerText = "تم تسجيل الدخول بنجاح! جاري تحويلك...";
         
-        // الترتيب: هينقلك لصفحة index.html (اللي هي صفحة المواعيد عندك)
         setTimeout(() => {
             window.location.href = "index.html"; 
-        }, 1500);
-
-      }).catch((error) => {
+        }, 1200);
+      })
+      .catch((error) => {
         messageDiv.style.color = "red";
-        messageDiv.innerText = "حدث خطأ: " + error.message;
+        if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+            messageDiv.innerText = "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
+        } else {
+            messageDiv.innerText = "حدث خطأ أثناء تسجيل الدخول، تأكدي من بياناتك.";
+        }
       });
     } else {
       alert("من فضلك ادخلي البيانات كاملة");
