@@ -2,42 +2,83 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إنشاء حسابك بنجاح</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء حساب جديد - السكرتيرة الذكية</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 350px; }
-        h2 { color: #1877f2; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #42b72a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        a { display: block; text-align: center; margin-top: 15px; color: #1877f2; text-decoration: none; }
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); margin: 0; }
+        .reg-container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
+        h2 { color: #333; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background-color: #764ba2; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; transition: 0.3s; margin-top: 10px; }
+        button:hover { background-color: #5a3d8c; }
+        .link-btn { display: block; margin-top: 15px; color: #764ba2; text-decoration: none; font-size: 14px; }
+        .msg { margin-top: 15px; font-size: 14px; min-height: 20px; }
     </style>
 </head>
 <body>
-<div class="card">
-    <h2>إنشاء حساب جديد ✨</h2>
-    <input type="text" id="name" placeholder="اسم الشركة / العيادة">
-    <input type="email" id="email" placeholder="البريد الإلكتروني">
-    <input type="text" id="phone" placeholder="رقم واتساب الشركة">
-    <input type="password" id="pass" placeholder="كلمة المرور">
-    <button onclick="register()">إنشاء الحساب</button>
-    <a href="login.html">عندك حساب؟ دخول</a>
+
+<div class="reg-container">
+    <h2>إنشاء حساب جديد</h2>
+    <input type="email" id="regEmail" placeholder="البريد الإلكتروني" required>
+    <input type="password" id="regPassword" placeholder="كلمة المرور (6 أرقام على الأقل)" required>
+    <button onclick="handleRegister()">تسجيل حساب جديد</button>
+    <a href="login.html" class="link-btn">لديك حساب بالفعل؟ سجل دخولك</a>
+    <div id="regMessage" class="msg"></div>
 </div>
-<script>
-    async function register() {
-        const res = await fetch('http://localhost:3000/register', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                company_name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                password: document.getElementById('pass').value
-            })
-        });
-        const data = await res.json();
-        if(data.success) { alert("تم التسجيل!"); window.location.href='login.html'; }
-        else { alert(data.message); }
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBwNGviMj8Y9RtarKo-INQ9UdofvIyW4XQ",
+    authDomain: "smart-secretary-system-13f33.firebaseapp.com",
+    projectId: "smart-secretary-system-13f33",
+    storageBucket: "smart-secretary-system-13f33.firebasestorage.app",
+    messagingSenderId: "749053278104",
+    appId: "1:749053278104:web:61c3e4e2fd2b220e409ded"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  window.handleRegister = function() {
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    const msg = document.getElementById('regMessage');
+
+    if(email && password) {
+      if(password.length < 6) {
+        alert("يجب أن تكون كلمة المرور 6 خانات على الأقل");
+        return;
+      }
+      
+      msg.style.color = "blue";
+      msg.innerText = "جاري إنشاء الحساب...";
+
+      // دالة إنشاء مستخدم جديد في نظام أمان Firebase
+      createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        msg.style.color = "green";
+        msg.innerText = "تم إنشاء الحساب بنجاح! جاري تحويلك للوحة التحكم...";
+        
+        setTimeout(() => {
+            window.location.href = "index.html"; 
+        }, 1500);
+      })
+      .catch((error) => {
+        msg.style.color = "red";
+        if(error.code === 'auth/email-already-in-use') {
+            msg.innerText = "هذا البريد مسجل مسبقاً، حاول تسجيل الدخول.";
+        } else {
+            msg.innerText = "خطأ: " + error.message;
+        }
+      });
+    } else {
+      alert("من فضلك ادخلي الإيميل والباسورد");
     }
+  }
 </script>
+
 </body>
 </html>
